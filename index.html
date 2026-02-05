@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Will you be my Valentine? 💘</title>
+    <style>
+      :root {
+        --bg1: #fff1f5;
+        --bg2: #ffe4ec;
+        --card: rgba(255, 255, 255, 0.72);
+        --text: #111827;
+        --muted: #6b7280;
+        --yes: #16a34a;
+        --no: #ef4444;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        color: var(--text);
+        min-height: 100svh;
+        background: radial-gradient(1200px 800px at 20% 10%, var(--bg2), transparent 60%),
+                    radial-gradient(1200px 800px at 90% 30%, #ffd6e7, transparent 55%),
+                    linear-gradient(180deg, var(--bg1), #ffffff);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      /* floating hearts */
+      .heart {
+        position: absolute;
+        font-size: 18px;
+        opacity: 0.35;
+        animation: floatUp linear infinite;
+        user-select: none;
+        pointer-events: none;
+      }
+      @keyframes floatUp {
+        from { transform: translateY(20vh) translateX(0) rotate(0deg); }
+        to   { transform: translateY(-120vh) translateX(30px) rotate(25deg); }
+      }
+
+      .wrap {
+        width: min(920px, 92vw);
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: stretch;
+      }
+      @media (max-width: 860px) {
+        .wrap { grid-template-columns: 1fr; }
+      }
+
+      .card {
+        border: 1px solid rgba(255,255,255,0.6);
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        border-radius: 28px;
+        box-shadow:
+          0 20px 60px rgba(0,0,0,0.12),
+          0 1px 0 rgba(255,255,255,0.8) inset;
+        padding: 22px;
+      }
+
+      .title {
+        font-size: clamp(28px, 3.6vw, 44px);
+        line-height: 1.05;
+        margin: 0 0 8px 0;
+        letter-spacing: -0.02em;
+      }
+      .subtitle {
+        margin: 0 0 18px 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .buttons {
+        position: relative;
+        height: 92px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 0;
+        padding: 14px 18px;
+        border-radius: 999px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.08s ease, box-shadow 0.2s ease;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+      }
+      button:active { transform: scale(0.98); }
+
+      #yesBtn {
+        background: linear-gradient(180deg, #22c55e, var(--yes));
+        color: white;
+      }
+      #noBtn {
+        position: relative;
+        background: linear-gradient(180deg, #fb7185, var(--no));
+        color: white;
+      }
+
+      .note {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      /* photo grid */
+      .photos {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .photo {
+        border-radius: 20px;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        background: #f3f4f6;
+        border: 1px solid rgba(0,0,0,0.06);
+        position: relative;
+      }
+      .photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .photo .ph {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: #9ca3af;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      /* success overlay */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: rgba(0,0,0,0.25);
+        backdrop-filter: blur(8px);
+        z-index: 20;
+      }
+      .overlay.show { display: grid; }
+
+      .modal {
+        width: min(620px, 92vw);
+        border-radius: 28px;
+        padding: 22px;
+        background: rgba(255,255,255,0.88);
+        border: 1px solid rgba(255,255,255,0.65);
+        box-shadow: 0 30px 80px rgba(0,0,0,0.22);
+        text-align: center;
+      }
+      .modal h2 {
+        margin: 0 0 8px 0;
+        font-size: 34px;
+        letter-spacing: -0.02em;
+      }
+      .modal p {
+        margin: 0 0 16px 0;
+        color: #374151;
+      }
+      .modal .small {
+        font-size: 13px;
+        color: #6b7280;
+      }
+      .modal a {
+        color: #db2777;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      /* confetti canvas */
+      canvas {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 30;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- floating hearts -->
+    <script>
+      // sprinkle hearts in background
+      const hearts = ["💗","💖","💘","💕","💞"];
+      for (let i = 0; i < 18; i++) {
+        const s = document.createElement("div");
+        s.className = "heart";
+        s.textContent = hearts[Math.floor(Math.random()*hearts.length)];
+        s.style.left = Math.random()*100 + "vw";
+        s.style.animationDuration = (10 + Math.random()*12) + "s";
+        s.style.animationDelay = (-Math.random()*12) + "s";
+        s.style.fontSize = (14 + Math.random()*16) + "px";
+        document.body.appendChild(s);
+      }
+    </script>
+
+    <div class="wrap">
+      <section class="card">
+        <h1 class="title">Will you be my Valentine? 💘</h1>
+        <p class="subtitle">
+          I have a very important question for you… (and I made a whole website to ask it 😌)
+        </p>
+
+        <div class="buttons" id="btnArea">
+          <button id="yesBtn">Yes 💝</button>
+          <button id="noBtn">No 🙃</button>
+        </div>
+
+        <div class="note">
+          Tip: if you want it more personal, change the text + add your photos on the right.
+        </div>
+      </section>
+
+      <aside class="card">
+        <div class="photos">
+          <!-- Replace the placeholders with your images:
+               Put files in the same folder: photo1.jpg, photo2.jpg, etc. -->
+          <div class="photo">
+            <img src="photo1.jpg" alt="Us 1" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
+            <div class="ph">Add photo1.jpg</div>
+          </div>
+          <div class="photo">
+            <img src="photo2.jpg" alt="Us 2" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
+            <div class="ph">Add photo2.jpg</div>
+          </div>
+          <div class="photo">
+            <img src="photo3.jpg" alt="Us 3" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
+            <div class="ph">Add photo3.jpg</div>
+          </div>
+          <div class="photo">
+            <img src="photo4.jpg" alt="Us 4" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
+            <div class="ph">Add photo4.jpg</div>
+          </div>
+        </div>
+        <p class="note" style="margin-top:12px;">
+          Photos are optional — it still looks cute without them.
+        </p>
+      </aside>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <h2>YAYYYYY 💞</h2>
+        <p>
+          Best decision ever. I’ll plan something cute 😌✨
+        </p>
+        <p class="small">
+          (Screenshot this and send it back to me as proof 😭)
+        </p>
+        <p class="small" style="margin-top:14px;">
+          <a href="#" id="close">Close</a>
+        </p>
+      </div>
+    </div>
+
+    <canvas id="confetti"></canvas>
+
+    <script>
+      const noBtn = document.getElementById("noBtn");
+      const yesBtn = document.getElementById("yesBtn");
+      const btnArea = document.getElementById("btnArea");
+      const overlay = document.getElementById("overlay");
+      const close = document.getElementById("close");
+
+      // Make "No" dodge the cursor/tap
+      function moveNoButton() {
+        const areaRect = btnArea.getBoundingClientRect();
+        const btnRect = noBtn.getBoundingClientRect();
+
+        const padding = 10;
+        const maxX = areaRect.width - btnRect.width - padding;
+        const maxY = areaRect.height - btnRect.height - padding;
+
+        // On small screens the area may wrap; ensure we still move within it
+        const x = padding + Math.random() * Math.max(0, maxX - padding);
+        const y = padding + Math.random() * Math.max(0, maxY - padding);
+
+        noBtn.style.position = "absolute";
+        noBtn.style.left = x + "px";
+        noBtn.style.top = y + "px";
+      }
+
+      noBtn.addEventListener("mouseenter", moveNoButton);
+      noBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        moveNoButton();
+      }, { passive: false });
+
+      // Yes -> show overlay + confetti
+      yesBtn.addEventListener("click", () => {
+        overlay.classList.add("show");
+        startConfetti(1600);
+      });
+
+      close.addEventListener("click", (e) => {
+        e.preventDefault();
+        overlay.classList.remove("show");
+      });
+
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) overlay.classList.remove("show");
+      });
+
+      // Tiny confetti
+      const canvas = document.getElementById("confetti");
+      const ctx = canvas.getContext("2d");
+      let W, H;
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      let confetti = [];
+      function startConfetti(durationMs = 1200) {
+        confetti = Array.from({ length: 140 }, () => ({
+          x: Math.random() * W,
+          y: -20 - Math.random() * H * 0.3,
+          r: 3 + Math.random() * 5,
+          vx: -2 + Math.random() * 4,
+          vy: 2 + Math.random() * 5,
+          rot: Math.random() * Math.PI,
+          vr: -0.2 + Math.random() * 0.4,
+          alpha: 0.9,
+        }));
+
+        const endAt = performance.now() + durationMs;
+        function tick(t) {
+          ctx.clearRect(0, 0, W, H);
+          confetti.forEach((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.vr;
+            p.vy += 0.02; // gravity
+            p.alpha *= 0.995;
+
+            ctx.save();
+            ctx.globalAlpha = p.alpha;
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+
+            // random-ish colors without hardcoding a single theme
+            const hue = (p.x / W) * 360;
+            ctx.fillStyle = `hsl(${hue}, 85%, 60%)`;
+            ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
+
+            ctx.restore();
+          });
+
+          confetti = confetti.filter((p) => p.y < H + 40 && p.alpha > 0.05);
+
+          if (t < endAt || confetti.length) requestAnimationFrame(tick);
+          else ctx.clearRect(0, 0, W, H);
+        }
+        requestAnimationFrame(tick);
+      }
+    </script>
+  </body>
+</html>
