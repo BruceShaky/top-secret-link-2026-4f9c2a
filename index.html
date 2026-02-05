@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Will you be my Valentine? 💘</title>
+    <title>Aisis, Will you be my Valentine? 💘</title>
     <style>
       :root {
         --bg1: #fff1f5;
@@ -104,9 +104,12 @@
         color: white;
       }
       #noBtn {
-        position: relative;
+        position: absolute; /* always absolute so it can teleport cleanly */
         background: linear-gradient(180deg, #fb7185, var(--no));
         color: white;
+        user-select: none;
+        touch-action: none;
+        will-change: transform, left, top;
       }
 
       .note {
@@ -223,10 +226,6 @@
           <button id="yesBtn">Yes 💝</button>
           <button id="noBtn">No 🙃</button>
         </div>
-
-        <div class="note">
-          Tip: if you want it more personal, change the text + add your photos on the right.
-        </div>
       </section>
 
       <aside class="card">
@@ -274,105 +273,160 @@
     <canvas id="confetti"></canvas>
 
     <script>
-      const noBtn = document.getElementById("noBtn");
-      const yesBtn = document.getElementById("yesBtn");
-      const btnArea = document.getElementById("btnArea");
-      const overlay = document.getElementById("overlay");
-      const close = document.getElementById("close");
-
-      // Make "No" dodge the cursor/tap
-      function moveNoButton() {
-        const areaRect = btnArea.getBoundingClientRect();
-        const btnRect = noBtn.getBoundingClientRect();
-
-        const padding = 10;
-        const maxX = areaRect.width - btnRect.width - padding;
-        const maxY = areaRect.height - btnRect.height - padding;
-
-        // On small screens the area may wrap; ensure we still move within it
-        const x = padding + Math.random() * Math.max(0, maxX - padding);
-        const y = padding + Math.random() * Math.max(0, maxY - padding);
-
-        noBtn.style.position = "absolute";
-        noBtn.style.left = x + "px";
-        noBtn.style.top = y + "px";
-      }
-
-      noBtn.addEventListener("mouseenter", moveNoButton);
-      noBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        moveNoButton();
-      }, { passive: false });
-
-      // Yes -> show overlay + confetti
-      yesBtn.addEventListener("click", () => {
-        overlay.classList.add("show");
-        startConfetti(1600);
-      });
-
-      close.addEventListener("click", (e) => {
-        e.preventDefault();
-        overlay.classList.remove("show");
-      });
-
-      overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) overlay.classList.remove("show");
-      });
-
-      // Tiny confetti
-      const canvas = document.getElementById("confetti");
-      const ctx = canvas.getContext("2d");
-      let W, H;
-      function resize() {
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-      }
-      window.addEventListener("resize", resize);
-      resize();
-
-      let confetti = [];
-      function startConfetti(durationMs = 1200) {
-        confetti = Array.from({ length: 140 }, () => ({
-          x: Math.random() * W,
-          y: -20 - Math.random() * H * 0.3,
-          r: 3 + Math.random() * 5,
-          vx: -2 + Math.random() * 4,
-          vy: 2 + Math.random() * 5,
-          rot: Math.random() * Math.PI,
-          vr: -0.2 + Math.random() * 0.4,
-          alpha: 0.9,
-        }));
-
-        const endAt = performance.now() + durationMs;
-        function tick(t) {
-          ctx.clearRect(0, 0, W, H);
-          confetti.forEach((p) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.rot += p.vr;
-            p.vy += 0.02; // gravity
-            p.alpha *= 0.995;
-
-            ctx.save();
-            ctx.globalAlpha = p.alpha;
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rot);
-
-            // random-ish colors without hardcoding a single theme
-            const hue = (p.x / W) * 360;
-            ctx.fillStyle = `hsl(${hue}, 85%, 60%)`;
-            ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
-
-            ctx.restore();
-          });
-
-          confetti = confetti.filter((p) => p.y < H + 40 && p.alpha > 0.05);
-
-          if (t < endAt || confetti.length) requestAnimationFrame(tick);
-          else ctx.clearRect(0, 0, W, H);
+        const noBtn = document.getElementById("noBtn");
+        const yesBtn = document.getElementById("yesBtn");
+        const btnArea = document.getElementById("btnArea");
+        const overlay = document.getElementById("overlay");
+        const close = document.getElementById("close");
+      
+        // --- IMPOSSIBLE NO BUTTON ---
+      
+        // Start position so it doesn't overlap on load
+        function placeNoInitial() {
+          const areaRect = btnArea.getBoundingClientRect();
+          // Put it near the right-ish side initially
+          noBtn.style.left = Math.max(10, areaRect.width - 140) + "px";
+          noBtn.style.top = "10px";
         }
-        requestAnimationFrame(tick);
-      }
-    </script>
+      
+        function moveNoButtonFar(fromX, fromY) {
+          const areaRect = btnArea.getBoundingClientRect();
+          const btnRect = noBtn.getBoundingClientRect();
+      
+          const pad = 10;
+          const maxX = Math.max(pad, areaRect.width - btnRect.width - pad);
+          const maxY = Math.max(pad, areaRect.height - btnRect.height - pad);
+      
+          // Candidate positions (teleport away from pointer)
+          let best = { x: pad, y: pad, score: -1 };
+      
+          for (let i = 0; i < 12; i++) {
+            const x = pad + Math.random() * (maxX - pad);
+            const y = pad + Math.random() * (maxY - pad);
+      
+            // Compute distance from pointer (in viewport coords)
+            const vx = areaRect.left + x + btnRect.width / 2;
+            const vy = areaRect.top + y + btnRect.height / 2;
+            const dx = vx - fromX;
+            const dy = vy - fromY;
+            const dist = Math.hypot(dx, dy);
+      
+            // Prefer farthest position
+            if (dist > best.score) best = { x, y, score: dist };
+          }
+      
+          noBtn.style.left = best.x + "px";
+          noBtn.style.top = best.y + "px";
+        }
+      
+        // Move BEFORE the cursor reaches it
+        function onPointerMove(e) {
+          const btnRect = noBtn.getBoundingClientRect();
+          const x = e.clientX;
+          const y = e.clientY;
+      
+          // "Danger zone" around the button (bigger = harder to catch)
+          const danger = 120;
+      
+          const near =
+            x > btnRect.left - danger &&
+            x < btnRect.right + danger &&
+            y > btnRect.top - danger &&
+            y < btnRect.bottom + danger;
+      
+          if (near) moveNoButtonFar(x, y);
+        }
+      
+        // Listen globally so it dodges no matter where you approach from
+        window.addEventListener("pointermove", onPointerMove, { passive: true });
+      
+        // If they somehow tap it, immediately teleport + block the action
+        function blockNo(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const x = (e.touches?.[0]?.clientX) ?? (e.clientX ?? window.innerWidth / 2);
+          const y = (e.touches?.[0]?.clientY) ?? (e.clientY ?? window.innerHeight / 2);
+          moveNoButtonFar(x, y);
+          return false;
+        }
+      
+        // Block all interactions
+        noBtn.addEventListener("click", blockNo, true);
+        noBtn.addEventListener("pointerdown", blockNo, true);
+        noBtn.addEventListener("touchstart", blockNo, { passive: false, capture: true });
+      
+        // Ensure it starts placed
+        placeNoInitial();
+        window.addEventListener("resize", placeNoInitial);
+      
+        // --- YES -> overlay + confetti ---
+        yesBtn.addEventListener("click", () => {
+          overlay.classList.add("show");
+          startConfetti(1600);
+        });
+      
+        close.addEventListener("click", (e) => {
+          e.preventDefault();
+          overlay.classList.remove("show");
+        });
+      
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) overlay.classList.remove("show");
+        });
+      
+        // Confetti (unchanged)
+        const canvas = document.getElementById("confetti");
+        const ctx = canvas.getContext("2d");
+        let W, H;
+        function resize() {
+          W = canvas.width = window.innerWidth;
+          H = canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+      
+        let confetti = [];
+        function startConfetti(durationMs = 1200) {
+          confetti = Array.from({ length: 140 }, () => ({
+            x: Math.random() * W,
+            y: -20 - Math.random() * H * 0.3,
+            r: 3 + Math.random() * 5,
+            vx: -2 + Math.random() * 4,
+            vy: 2 + Math.random() * 5,
+            rot: Math.random() * Math.PI,
+            vr: -0.2 + Math.random() * 0.4,
+            alpha: 0.9,
+          }));
+      
+          const endAt = performance.now() + durationMs;
+          function tick(t) {
+            ctx.clearRect(0, 0, W, H);
+            confetti.forEach((p) => {
+              p.x += p.vx;
+              p.y += p.vy;
+              p.rot += p.vr;
+              p.vy += 0.02;
+              p.alpha *= 0.995;
+      
+              ctx.save();
+              ctx.globalAlpha = p.alpha;
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+      
+              const hue = (p.x / W) * 360;
+              ctx.fillStyle = `hsl(${hue}, 85%, 60%)`;
+              ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
+      
+              ctx.restore();
+            });
+      
+            confetti = confetti.filter((p) => p.y < H + 40 && p.alpha > 0.05);
+      
+            if (t < endAt || confetti.length) requestAnimationFrame(tick);
+            else ctx.clearRect(0, 0, W, H);
+          }
+          requestAnimationFrame(tick);
+        }
+      </script>      
   </body>
 </html>
