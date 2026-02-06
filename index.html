@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aisis, Will you be my Valentine? 💘</title>
+    <title>Will you be my Valentine? 💘</title>
+
     <style>
       :root {
         --bg1: #fff1f5;
@@ -16,14 +17,16 @@
       }
 
       * { box-sizing: border-box; }
+
       body {
         margin: 0;
         font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
         color: var(--text);
         min-height: 100svh;
-        background: radial-gradient(1200px 800px at 20% 10%, var(--bg2), transparent 60%),
-                    radial-gradient(1200px 800px at 90% 30%, #ffd6e7, transparent 55%),
-                    linear-gradient(180deg, var(--bg1), #ffffff);
+        background:
+          radial-gradient(1200px 800px at 20% 10%, var(--bg2), transparent 60%),
+          radial-gradient(1200px 800px at 90% 30%, #ffd6e7, transparent 55%),
+          linear-gradient(180deg, var(--bg1), #ffffff);
         display: grid;
         place-items: center;
         overflow: hidden;
@@ -38,18 +41,19 @@
         user-select: none;
         pointer-events: none;
       }
+
       @keyframes floatUp {
-        from { transform: translateY(20vh) translateX(0) rotate(0deg); }
-        to   { transform: translateY(-120vh) translateX(30px) rotate(25deg); }
+        from { transform: translateY(20vh) rotate(0deg); }
+        to   { transform: translateY(-120vh) rotate(25deg); }
       }
 
       .wrap {
-        width: min(920px, 92vw);
+        width: min(900px, 92vw);
         display: grid;
         gap: 18px;
         grid-template-columns: 1.1fr 0.9fr;
-        align-items: stretch;
       }
+
       @media (max-width: 860px) {
         .wrap { grid-template-columns: 1fr; }
       }
@@ -69,8 +73,8 @@
         font-size: clamp(28px, 3.6vw, 44px);
         line-height: 1.05;
         margin: 0 0 8px 0;
-        letter-spacing: -0.02em;
       }
+
       .subtitle {
         margin: 0 0 18px 0;
         color: var(--muted);
@@ -79,12 +83,10 @@
 
       .buttons {
         position: relative;
-        height: 92px;
+        height: 90px;
         display: flex;
         gap: 14px;
         align-items: center;
-        justify-content: flex-start;
-        flex-wrap: wrap;
       }
 
       button {
@@ -94,50 +96,41 @@
         font-size: 16px;
         font-weight: 700;
         cursor: pointer;
-        transition: transform 0.08s ease, box-shadow 0.2s ease;
         box-shadow: 0 12px 25px rgba(0,0,0,0.12);
       }
-      button:active { transform: scale(0.98); }
 
       #yesBtn {
         background: linear-gradient(180deg, #22c55e, var(--yes));
         color: white;
       }
+
       #noBtn {
-        position: absolute; /* always absolute so it can teleport cleanly */
+        position: absolute;
         background: linear-gradient(180deg, #fb7185, var(--no));
         color: white;
         user-select: none;
         touch-action: none;
-        will-change: transform, left, top;
+        transition: left 160ms ease, top 160ms ease, transform 160ms ease;
+        will-change: left, top, transform;
       }
 
-      .note {
-        margin-top: 10px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-
-      /* photo grid */
-      .photos {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
+      /* single photo */
       .photo {
-        border-radius: 20px;
+        border-radius: 24px;
         overflow: hidden;
         aspect-ratio: 4 / 3;
         background: #f3f4f6;
         border: 1px solid rgba(0,0,0,0.06);
         position: relative;
       }
+
       .photo img {
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
       }
+
       .photo .ph {
         position: absolute;
         inset: 0;
@@ -145,10 +138,9 @@
         place-items: center;
         color: #9ca3af;
         font-weight: 700;
-        letter-spacing: 0.02em;
       }
 
-      /* success overlay */
+      /* overlay */
       .overlay {
         position: fixed;
         inset: 0;
@@ -158,37 +150,33 @@
         backdrop-filter: blur(8px);
         z-index: 20;
       }
+
       .overlay.show { display: grid; }
 
       .modal {
         width: min(620px, 92vw);
         border-radius: 28px;
         padding: 22px;
-        background: rgba(255,255,255,0.88);
-        border: 1px solid rgba(255,255,255,0.65);
-        box-shadow: 0 30px 80px rgba(0,0,0,0.22);
+        background: rgba(255,255,255,0.9);
         text-align: center;
       }
+
       .modal h2 {
-        margin: 0 0 8px 0;
+        margin: 0 0 8px;
         font-size: 34px;
-        letter-spacing: -0.02em;
       }
+
       .modal p {
-        margin: 0 0 16px 0;
+        margin: 0 0 16px;
         color: #374151;
       }
-      .modal .small {
-        font-size: 13px;
-        color: #6b7280;
-      }
+
       .modal a {
         color: #db2777;
         text-decoration: none;
         font-weight: 700;
       }
 
-      /* confetti canvas */
       canvas {
         position: fixed;
         inset: 0;
@@ -199,27 +187,24 @@
   </head>
 
   <body>
-    <!-- floating hearts -->
     <script>
-      // sprinkle hearts in background
       const hearts = ["💗","💖","💘","💕","💞"];
-      for (let i = 0; i < 18; i++) {
-        const s = document.createElement("div");
-        s.className = "heart";
-        s.textContent = hearts[Math.floor(Math.random()*hearts.length)];
-        s.style.left = Math.random()*100 + "vw";
-        s.style.animationDuration = (10 + Math.random()*12) + "s";
-        s.style.animationDelay = (-Math.random()*12) + "s";
-        s.style.fontSize = (14 + Math.random()*16) + "px";
-        document.body.appendChild(s);
+      for (let i = 0; i < 16; i++) {
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.textContent = hearts[Math.floor(Math.random()*hearts.length)];
+        h.style.left = Math.random()*100 + "vw";
+        h.style.animationDuration = (10 + Math.random()*12) + "s";
+        h.style.fontSize = (14 + Math.random()*16) + "px";
+        document.body.appendChild(h);
       }
     </script>
 
     <div class="wrap">
       <section class="card">
-        <h1 class="title">Will you be my Valentine? 💘</h1>
+        <h1 class="title">Aisis, will you be my Valentine? 💘</h1>
         <p class="subtitle">
-          I have a very important question for you… (and I made a whole website to ask it 😌)
+          I have a very important question for you… and I made a whole website to ask it 😌
         </p>
 
         <div class="buttons" id="btnArea">
@@ -229,204 +214,130 @@
       </section>
 
       <aside class="card">
-        <div class="photos">
-          <!-- Replace the placeholders with your images:
-               Put files in the same folder: photo1.jpg, photo2.jpg, etc. -->
-          <div class="photo">
-            <img src="photo1.jpg" alt="Us 1" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
-            <div class="ph">Add photo1.jpg</div>
-          </div>
-          <div class="photo">
-            <img src="photo2.jpg" alt="Us 2" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
-            <div class="ph">Add photo2.jpg</div>
-          </div>
-          <div class="photo">
-            <img src="photo3.jpg" alt="Us 3" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
-            <div class="ph">Add photo3.jpg</div>
-          </div>
-          <div class="photo">
-            <img src="photo4.jpg" alt="Us 4" onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
-            <div class="ph">Add photo4.jpg</div>
-          </div>
+        <div class="photo">
+          <img src="photo.jpg" alt="Us"
+            onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
+          <div class="ph">Add photo.jpg</div>
         </div>
-        <p class="note" style="margin-top:12px;">
-          Photos are optional — it still looks cute without them.
-        </p>
       </aside>
     </div>
 
     <div class="overlay" id="overlay">
       <div class="modal">
         <h2>YAYYYYY 💞</h2>
-        <p>
-          Best decision ever. I’ll plan something cute 😌✨
-        </p>
-        <p class="small">
-          (Screenshot this and send it back to me as proof 😭)
-        </p>
-        <p class="small" style="margin-top:14px;">
-          <a href="#" id="close">Close</a>
-        </p>
+        <p>I’ll plan something cute 😌✨</p>
+        <p><a href="#" id="close">Close</a></p>
       </div>
     </div>
 
     <canvas id="confetti"></canvas>
 
     <script>
-        const noBtn = document.getElementById("noBtn");
-        const yesBtn = document.getElementById("yesBtn");
-        const btnArea = document.getElementById("btnArea");
-        const overlay = document.getElementById("overlay");
-        const close = document.getElementById("close");
-      
-        // --- IMPOSSIBLE NO BUTTON ---
-      
-        // Start position so it doesn't overlap on load
-        function placeNoInitial() {
-          const areaRect = btnArea.getBoundingClientRect();
-          // Put it near the right-ish side initially
-          noBtn.style.left = Math.max(10, areaRect.width - 140) + "px";
-          noBtn.style.top = "10px";
+      const noBtn = document.getElementById("noBtn");
+      const yesBtn = document.getElementById("yesBtn");
+      const btnArea = document.getElementById("btnArea");
+      const overlay = document.getElementById("overlay");
+      const close = document.getElementById("close");
+
+      let lastMove = 0;
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function moveNo(x, y) {
+        const area = btnArea.getBoundingClientRect();
+        const btn = noBtn.getBoundingClientRect();
+        const pad = 10;
+
+        const cx = (btn.left + btn.right) / 2;
+        const cy = (btn.top + btn.bottom) / 2;
+
+        const dx = cx - x;
+        const dy = cy - y;
+        const len = Math.hypot(dx, dy) || 1;
+
+        const jump = 130;
+        const nx = cx + (dx / len) * jump;
+        const ny = cy + (dy / len) * jump;
+
+        const left = clamp(nx - area.left - btn.width/2, pad, area.width - btn.width - pad);
+        const top  = clamp(ny - area.top  - btn.height/2, pad, area.height - btn.height - pad);
+
+        noBtn.style.left = left + "px";
+        noBtn.style.top  = top + "px";
+      }
+
+      btnArea.addEventListener("pointermove", e => {
+        const now = Date.now();
+        if (now - lastMove < 180) return;
+
+        const btn = noBtn.getBoundingClientRect();
+        const cx = (btn.left + btn.right) / 2;
+        const cy = (btn.top + btn.bottom) / 2;
+
+        if (Math.hypot(cx - e.clientX, cy - e.clientY) < 55) {
+          lastMove = now;
+          moveNo(e.clientX, e.clientY);
         }
-      
-        function moveNoButtonFar(fromX, fromY) {
-          const areaRect = btnArea.getBoundingClientRect();
-          const btnRect = noBtn.getBoundingClientRect();
-      
-          const pad = 10;
-          const maxX = Math.max(pad, areaRect.width - btnRect.width - pad);
-          const maxY = Math.max(pad, areaRect.height - btnRect.height - pad);
-      
-          // Candidate positions (teleport away from pointer)
-          let best = { x: pad, y: pad, score: -1 };
-      
-          for (let i = 0; i < 12; i++) {
-            const x = pad + Math.random() * (maxX - pad);
-            const y = pad + Math.random() * (maxY - pad);
-      
-            // Compute distance from pointer (in viewport coords)
-            const vx = areaRect.left + x + btnRect.width / 2;
-            const vy = areaRect.top + y + btnRect.height / 2;
-            const dx = vx - fromX;
-            const dy = vy - fromY;
-            const dist = Math.hypot(dx, dy);
-      
-            // Prefer farthest position
-            if (dist > best.score) best = { x, y, score: dist };
-          }
-      
-          noBtn.style.left = best.x + "px";
-          noBtn.style.top = best.y + "px";
+      });
+
+      noBtn.addEventListener("click", e => {
+        e.preventDefault();
+        moveNo(e.clientX, e.clientY);
+      });
+
+      (function init() {
+        const area = btnArea.getBoundingClientRect();
+        noBtn.style.left = area.width - 140 + "px";
+        noBtn.style.top = "10px";
+      })();
+
+      yesBtn.addEventListener("click", () => {
+        overlay.classList.add("show");
+        startConfetti();
+      });
+
+      close.addEventListener("click", e => {
+        e.preventDefault();
+        overlay.classList.remove("show");
+      });
+
+      const canvas = document.getElementById("confetti");
+      const ctx = canvas.getContext("2d");
+      function resize() {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+      }
+      resize();
+      addEventListener("resize", resize);
+
+      function startConfetti() {
+        const pieces = Array.from({length:120}, () => ({
+          x: Math.random()*canvas.width,
+          y: -20,
+          r: 4 + Math.random()*4,
+          vx: -2 + Math.random()*4,
+          vy: 2 + Math.random()*4,
+          a: 1
+        }));
+
+        function tick() {
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+          pieces.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.03;
+            p.a *= 0.99;
+            ctx.globalAlpha = p.a;
+            ctx.fillStyle = `hsl(${Math.random()*360},85%,65%)`;
+            ctx.fillRect(p.x,p.y,p.r,p.r);
+          });
+          if (pieces.some(p => p.a > 0.05)) requestAnimationFrame(tick);
         }
-      
-        // Move BEFORE the cursor reaches it
-        function onPointerMove(e) {
-          const btnRect = noBtn.getBoundingClientRect();
-          const x = e.clientX;
-          const y = e.clientY;
-      
-          // "Danger zone" around the button (bigger = harder to catch)
-          const danger = 120;
-      
-          const near =
-            x > btnRect.left - danger &&
-            x < btnRect.right + danger &&
-            y > btnRect.top - danger &&
-            y < btnRect.bottom + danger;
-      
-          if (near) moveNoButtonFar(x, y);
-        }
-      
-        // Listen globally so it dodges no matter where you approach from
-        window.addEventListener("pointermove", onPointerMove, { passive: true });
-      
-        // If they somehow tap it, immediately teleport + block the action
-        function blockNo(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          const x = (e.touches?.[0]?.clientX) ?? (e.clientX ?? window.innerWidth / 2);
-          const y = (e.touches?.[0]?.clientY) ?? (e.clientY ?? window.innerHeight / 2);
-          moveNoButtonFar(x, y);
-          return false;
-        }
-      
-        // Block all interactions
-        noBtn.addEventListener("click", blockNo, true);
-        noBtn.addEventListener("pointerdown", blockNo, true);
-        noBtn.addEventListener("touchstart", blockNo, { passive: false, capture: true });
-      
-        // Ensure it starts placed
-        placeNoInitial();
-        window.addEventListener("resize", placeNoInitial);
-      
-        // --- YES -> overlay + confetti ---
-        yesBtn.addEventListener("click", () => {
-          overlay.classList.add("show");
-          startConfetti(1600);
-        });
-      
-        close.addEventListener("click", (e) => {
-          e.preventDefault();
-          overlay.classList.remove("show");
-        });
-      
-        overlay.addEventListener("click", (e) => {
-          if (e.target === overlay) overlay.classList.remove("show");
-        });
-      
-        // Confetti (unchanged)
-        const canvas = document.getElementById("confetti");
-        const ctx = canvas.getContext("2d");
-        let W, H;
-        function resize() {
-          W = canvas.width = window.innerWidth;
-          H = canvas.height = window.innerHeight;
-        }
-        window.addEventListener("resize", resize);
-        resize();
-      
-        let confetti = [];
-        function startConfetti(durationMs = 1200) {
-          confetti = Array.from({ length: 140 }, () => ({
-            x: Math.random() * W,
-            y: -20 - Math.random() * H * 0.3,
-            r: 3 + Math.random() * 5,
-            vx: -2 + Math.random() * 4,
-            vy: 2 + Math.random() * 5,
-            rot: Math.random() * Math.PI,
-            vr: -0.2 + Math.random() * 0.4,
-            alpha: 0.9,
-          }));
-      
-          const endAt = performance.now() + durationMs;
-          function tick(t) {
-            ctx.clearRect(0, 0, W, H);
-            confetti.forEach((p) => {
-              p.x += p.vx;
-              p.y += p.vy;
-              p.rot += p.vr;
-              p.vy += 0.02;
-              p.alpha *= 0.995;
-      
-              ctx.save();
-              ctx.globalAlpha = p.alpha;
-              ctx.translate(p.x, p.y);
-              ctx.rotate(p.rot);
-      
-              const hue = (p.x / W) * 360;
-              ctx.fillStyle = `hsl(${hue}, 85%, 60%)`;
-              ctx.fillRect(-p.r, -p.r, p.r * 2, p.r * 2);
-      
-              ctx.restore();
-            });
-      
-            confetti = confetti.filter((p) => p.y < H + 40 && p.alpha > 0.05);
-      
-            if (t < endAt || confetti.length) requestAnimationFrame(tick);
-            else ctx.clearRect(0, 0, W, H);
-          }
-          requestAnimationFrame(tick);
-        }
-      </script>      
+        tick();
+      }
+    </script>
   </body>
 </html>
+
