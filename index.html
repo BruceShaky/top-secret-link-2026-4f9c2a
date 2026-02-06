@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Will you be my Valentine? 💘</title>
 
+    <!-- Disable social media previews -->
+    <meta property="og:title" content="" />
+    <meta property="og:description" content="" />
+    <meta property="og:image" content="" />
+    <meta property="og:url" content="https://bruceshaky.github.io/top-secret-link-2026-4f9c2a/" />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="none" />
+    
     <style>
       :root {
         --bg1: #fff1f5;
@@ -177,51 +186,6 @@
         font-weight: 700;
       }
 
-      /* YES countdown overlay */
-      .countdown {
-        position: fixed;
-        inset: 0;
-        display: none;
-        place-items: center;
-        background: rgba(0,0,0,0.25);
-        backdrop-filter: blur(10px);
-        z-index: 19; /* just under the modal */
-      }
-      .countdown.show { display: grid; }
-
-      .countdownCard {
-        width: min(620px, 92vw);
-        border-radius: 28px;
-        padding: 26px 22px;
-        background: rgba(255,255,255,0.9);
-        text-align: center;
-        box-shadow: 0 30px 80px rgba(0,0,0,0.22);
-      }
-
-      .countdownTitle {
-        margin: 0 0 10px;
-        font-size: 18px;
-        color: #374151;
-        font-weight: 800;
-        letter-spacing: -0.01em;
-      }
-
-      .countdownNumber {
-        margin: 0;
-        font-size: clamp(56px, 8vw, 92px);
-        line-height: 1;
-        font-weight: 900;
-        letter-spacing: -0.03em;
-        transform: scale(1);
-        animation: pop 420ms ease;
-      }
-
-      @keyframes pop {
-        0% { transform: scale(0.85); opacity: 0.35; }
-        60% { transform: scale(1.08); opacity: 1; }
-        100% { transform: scale(1); opacity: 1; }
-      }
-
       canvas {
         position: fixed;
         inset: 0;
@@ -266,14 +230,6 @@
       </aside>
     </div>
 
-    <!-- Countdown overlay -->
-    <div class="countdown" id="countdown">
-      <div class="countdownCard">
-        <p class="countdownTitle">Valentine confirmed in… 💘</p>
-        <p class="countdownNumber" id="countdownNumber">3</p>
-      </div>
-    </div>
-
     <div class="overlay" id="overlay">
       <div class="modal">
         <h2>YAYYYYY 💞</h2>
@@ -291,11 +247,7 @@
       const overlay = document.getElementById("overlay");
       const close = document.getElementById("close");
 
-      const countdown = document.getElementById("countdown");
-      const countdownNumber = document.getElementById("countdownNumber");
-
       let lastMove = 0;
-      let yesLocked = false;
 
       function clamp(n, min, max) {
         return Math.max(min, Math.min(max, n));
@@ -349,36 +301,9 @@
         noBtn.style.top = "10px";
       })();
 
-      // YES countdown -> then modal + confetti
-      async function runYesCountdown() {
-        countdown.classList.add("show");
-        const steps = ["3", "2", "1", "💘"];
-
-        for (let i = 0; i < steps.length; i++) {
-          countdownNumber.textContent = steps[i];
-
-          // restart animation
-          countdownNumber.style.animation = "none";
-          // force reflow
-          void countdownNumber.offsetWidth;
-          countdownNumber.style.animation = "";
-
-          await new Promise(r => setTimeout(r, i === steps.length - 1 ? 450 : 650));
-        }
-
-        countdown.classList.remove("show");
+      yesBtn.addEventListener("click", () => {
         overlay.classList.add("show");
         startConfetti();
-      }
-
-      yesBtn.addEventListener("click", () => {
-        if (yesLocked) return;
-        yesLocked = true;
-
-        // optional: disable buttons during countdown to avoid double-click weirdness
-        yesBtn.disabled = true;
-
-        runYesCountdown();
       });
 
       close.addEventListener("click", e => {
@@ -396,10 +321,10 @@
       addEventListener("resize", resize);
 
       function startConfetti() {
-        const pieces = Array.from({length:140}, () => ({
+        const pieces = Array.from({length:120}, () => ({
           x: Math.random()*canvas.width,
           y: -20,
-          r: 4 + Math.random()*5,
+          r: 4 + Math.random()*4,
           vx: -2 + Math.random()*4,
           vy: 2 + Math.random()*4,
           a: 1
@@ -423,5 +348,6 @@
     </script>
   </body>
 </html>
+
 
 
