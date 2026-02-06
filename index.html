@@ -9,11 +9,13 @@
     <meta property="og:title" content="" />
     <meta property="og:description" content="" />
     <meta property="og:image" content="" />
-    <meta property="og:url" content="https://bruceshaky.github.io/top-secret-link-2026-4f9c2a/" />
+    <meta
+      property="og:url"
+      content="https://bruceshaky.github.io/top-secret-link-2026-4f9c2a/"
+    />
     <meta property="og:type" content="website" />
-
     <meta name="twitter:card" content="none" />
-    
+
     <style>
       :root {
         --bg1: #fff1f5;
@@ -108,6 +110,11 @@
         box-shadow: 0 12px 25px rgba(0,0,0,0.12);
       }
 
+      button:disabled {
+        opacity: 0.7;
+        cursor: default;
+      }
+
       #yesBtn {
         background: linear-gradient(180deg, #22c55e, var(--yes));
         color: white;
@@ -186,6 +193,51 @@
         font-weight: 700;
       }
 
+      /* YES countdown overlay */
+      .countdown {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background: rgba(0,0,0,0.25);
+        backdrop-filter: blur(10px);
+        z-index: 19; /* under modal */
+      }
+
+      .countdown.show { display: grid; }
+
+      .countdownCard {
+        width: min(620px, 92vw);
+        border-radius: 28px;
+        padding: 26px 22px;
+        background: rgba(255,255,255,0.9);
+        text-align: center;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.22);
+      }
+
+      .countdownTitle {
+        margin: 0 0 10px;
+        font-size: 18px;
+        color: #374151;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .countdownNumber {
+        margin: 0;
+        font-size: clamp(56px, 8vw, 92px);
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        animation: pop 420ms ease;
+      }
+
+      @keyframes pop {
+        0% { transform: scale(0.85); opacity: 0.35; }
+        60% { transform: scale(1.08); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+
       canvas {
         position: fixed;
         inset: 0;
@@ -224,10 +276,21 @@
 
       <aside class="card">
         <div class="photo">
-          <img src="photo.jpg" alt="Us"
-            onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';" />
+          <img
+            src="photo.jpg"
+            alt="Us"
+            onerror="this.remove(); this.parentElement.querySelector('.ph').style.display='grid';"
+          />
         </div>
       </aside>
+    </div>
+
+    <!-- Countdown overlay -->
+    <div class="countdown" id="countdown">
+      <div class="countdownCard">
+        <p class="countdownTitle">Valentine confirmed in… 💘</p>
+        <p class="countdownNumber" id="countdownNumber">3</p>
+      </div>
     </div>
 
     <div class="overlay" id="overlay">
@@ -247,7 +310,11 @@
       const overlay = document.getElementById("overlay");
       const close = document.getElementById("close");
 
+      const countdown = document.getElementById("countdown");
+      const countdownNumber = document.getElementById("countdownNumber");
+
       let lastMove = 0;
+      let yesLocked = false;
 
       function clamp(n, min, max) {
         return Math.max(min, Math.min(max, n));
@@ -276,7 +343,7 @@
         noBtn.style.top  = top + "px";
       }
 
-      btnArea.addEventListener("pointermove", e => {
+      btnArea.addEventListener("pointermove", (e) => {
         const now = Date.now();
         if (now - lastMove < 180) return;
 
@@ -290,7 +357,7 @@
         }
       });
 
-      noBtn.addEventListener("click", e => {
+      noBtn.addEventListener("click", (e) => {
         e.preventDefault();
         moveNo(e.clientX, e.clientY);
       });
@@ -301,18 +368,48 @@
         noBtn.style.top = "10px";
       })();
 
-      yesBtn.addEventListener("click", () => {
+      async function runYesCountdown() {
+        countdown.classList.add("show");
+        const steps = ["3", "2", "1", "💘"];
+
+        for (let i = 0; i < steps.length; i++) {
+          countdownNumber.textContent = steps[i];
+
+          // restart animation cleanly
+          countdownNumber.style.animation = "none";
+          void countdownNumber.offsetWidth;
+          countdownNumber.style.animation = "";
+
+          await new Promise((r) => setTimeout(r, i === steps.length - 1 ? 450 : 650));
+        }
+
+        countdown.classList.remove("show");
         overlay.classList.add("show");
         startConfetti();
+      }
+
+      yesBtn.addEventListener("click", () => {
+        if (yesLocked) return;
+        yesLocked = true;
+
+        // prevent double click weirdness
+        yesBtn.disabled = true;
+
+        runYesCountdown();
       });
 
-      close.addEventListener("click", e => {
+      close.addEventListener("click", (e) => {
         e.preventDefault();
         overlay.classList.remove("show");
+
+        // If you ever want to allow re-clicking yes after closing, uncomment:
+        // yesLocked = false;
+        // yesBtn.disabled = false;
       });
 
       const canvas = document.getElementById("confetti");
       const ctx = canvas.getContext("2d");
+
       function resize() {
         canvas.width = innerWidth;
         canvas.height = innerHeight;
@@ -321,33 +418,30 @@
       addEventListener("resize", resize);
 
       function startConfetti() {
-        const pieces = Array.from({length:120}, () => ({
-          x: Math.random()*canvas.width,
+        const pieces = Array.from({ length: 120 }, () => ({
+          x: Math.random() * canvas.width,
           y: -20,
-          r: 4 + Math.random()*4,
-          vx: -2 + Math.random()*4,
-          vy: 2 + Math.random()*4,
-          a: 1
+          r: 4 + Math.random() * 4,
+          vx: -2 + Math.random() * 4,
+          vy: 2 + Math.random() * 4,
+          a: 1,
         }));
 
         function tick() {
-          ctx.clearRect(0,0,canvas.width,canvas.height);
-          pieces.forEach(p => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          pieces.forEach((p) => {
             p.x += p.vx;
             p.y += p.vy;
             p.vy += 0.03;
             p.a *= 0.99;
             ctx.globalAlpha = p.a;
-            ctx.fillStyle = `hsl(${Math.random()*360},85%,65%)`;
-            ctx.fillRect(p.x,p.y,p.r,p.r);
+            ctx.fillStyle = `hsl(${Math.random() * 360},85%,65%)`;
+            ctx.fillRect(p.x, p.y, p.r, p.r);
           });
-          if (pieces.some(p => p.a > 0.05)) requestAnimationFrame(tick);
+          if (pieces.some((p) => p.a > 0.05)) requestAnimationFrame(tick);
         }
         tick();
       }
     </script>
   </body>
 </html>
-
-
-
